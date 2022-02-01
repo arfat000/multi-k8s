@@ -1,0 +1,20 @@
+sudo: required
+language: generic
+services:
+  - docker
+before_install:
+  - docker build -t arfat33/react-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true arfat33/react-test npm test -- --coverage
+after_success: 
+  - docker build -t arfat33/multi-client ./client
+  - docker build -t arfat33/multi-nginx ./nginx
+  - docker build -t arfat33/multi-server ./server
+  - docker build -t arfat33/multi-worker ./worker
+  # login to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push the images to docker hub
+  - docker push arfat33/multi-client
+  - docker push arfat33/multi-nginx
+  - docker push arfat33/multi-server
+  - docker push arfat33/multi-worker
